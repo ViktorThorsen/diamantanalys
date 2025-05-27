@@ -34,10 +34,10 @@ def set_background(image_file):
             unsafe_allow_html=True
         )
 
-# Bakgrundsbild
+
 set_background("diamondBackground.jpg")
 
-# Filuppladdning i vänsterspalten
+
 st.sidebar.markdown("## Ladda upp diamantdata (CSV)")
 uploaded_file = st.sidebar.file_uploader("Välj en fil", type=["csv"])
 
@@ -47,7 +47,7 @@ def clean_diamond_data(uploaded_file):
         return None
 
     df = pd.read_csv(uploaded_file, sep=None, engine='python')
-    df.reset_index(inplace=True)  # gör index till kolumn
+    df.reset_index(inplace=True)
 
     required_columns = ['index', 'cut', 'color', 'clarity', 'price', 'carat', 'x', 'y', 'z', 'depth']
     missing = [col for col in required_columns if col not in df.columns]
@@ -64,14 +64,14 @@ def clean_diamond_data(uploaded_file):
     df = df[df['depth_diff'] <= 1]
     return df
 
-# Läs in data
+
 df = clean_diamond_data(uploaded_file)
 
 if df is None:
     st.warning("⬅️ Vänligen ladda upp en korrekt CSV-fil för att visa grafer.")
     st.stop()
 
-# Titel i header
+
 st.markdown(
     """
     <style>
@@ -93,7 +93,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Tabs
 tab1, tab2, tab3 = st.tabs(["Pris vs Karat", "Antal Diamanter","Beräkning"])
 
 with tab1:
@@ -165,7 +164,6 @@ with tab2:
 with tab3:
     nordic_df = df[(df['carat'] >= 0.1) & (df['carat'] <= 1.0)].copy()
 
-    # Säkerställ att kolumn och data finns innan gruppering
     if not nordic_df.empty and 'carat' in nordic_df.columns:
         nordic_df = nordic_df.dropna(subset=['carat'])
         nordic_df['carat_bin'] = pd.cut(nordic_df['carat'], bins=np.arange(0.1, 1.05, 0.1))
@@ -173,7 +171,6 @@ with tab3:
         st.warning("Data saknas eller kolumn 'carat' är inte tillgänglig.")
         st.stop()
 
-    # Volatilitetsbaserade rekommendationer
     volatility = nordic_df.groupby(['carat_bin', 'color'], observed=False)['price'].agg(['mean', 'std'])
     volatility['variation'] = volatility['std'] / volatility['mean']
     volatility = volatility.dropna()
@@ -191,15 +188,24 @@ with tab3:
     st.markdown("### Grupper med mest Volatilitet i detta datasetet")
     st.markdown(f"**Topp 2 - volatilitet färger:** {', '.join(top_colors)}")
     st.markdown(f"**Topp 2 - volatilitet clarity:** {', '.join(top_clarities)}")
-    st.markdown('När du väljer kategori, ha i åtanke att Guldfynds målgrupp efterfrågar')
-    st.markdown('*Färger: D och E*')
-    st.markdown('*Clarity: IF och VVS1*')
+    st.markdown(
+    "<p style='color: #FFD700; font-weight: bold;'>När du väljer kategori, ha i åtanke att Guldfynds målgrupp efterfrågar</p>",
+    unsafe_allow_html=True
+    )
+    st.markdown(
+    "<p style='color: #FFD700;'>Färger: D och E</p>",
+    unsafe_allow_html=True
+    )
+    st.markdown(
+    "<p style='color: #FFD700;'>Clarity: IF och VVS1</p>",
+    unsafe_allow_html=True
+    )
 
     available_colors = sorted(nordic_df['color'].dropna().unique())
     available_clarities = sorted(nordic_df['clarity'].dropna().unique())
 
     selected_colors = st.multiselect("Välj färger att inkludera", available_colors, default=['D', 'E'])
-    selected_clarities = st.multiselect("Välj clarity-nivåer att inkludera", available_clarities, default=['IF', 'VVS2'])
+    selected_clarities = st.multiselect("Välj clarity-nivåer att inkludera", available_clarities, default=['IF', 'VVS1'])
 
     filtered = nordic_df[(nordic_df['color'].isin(selected_colors)) &
                          (nordic_df['clarity'].isin(selected_clarities))].copy()
