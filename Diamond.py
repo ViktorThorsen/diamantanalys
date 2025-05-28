@@ -33,6 +33,22 @@ def set_background(image_file):
             """,
             unsafe_allow_html=True
         )
+        st.markdown("""
+        <style>
+        .stApp {
+        background-color: #1e1e1e !important;
+        color: white !important;
+        }
+        p, div, span, h1, h2, h3, h4, h5, h6 {
+        color: white !important;
+        }
+
+        .css-1d391kg, .css-1lcbmhc {
+        background-color: #111 !important;
+        color: white !important;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
 
 set_background("diamondBackground.jpg")
@@ -46,15 +62,18 @@ def clean_diamond_data(uploaded_file):
     if uploaded_file is None:
         return None
 
-    df = pd.read_csv(uploaded_file, sep=None, engine='python')
+    # Konvertera till en fil-liknande ström
+    file_data = uploaded_file.read().decode("utf-8")
+    df = pd.read_csv(io.StringIO(file_data), sep=None, engine='python')
     df.reset_index(inplace=True)
 
     required_columns = ['index', 'cut', 'color', 'clarity', 'price', 'carat', 'x', 'y', 'z', 'depth']
     missing = [col for col in required_columns if col not in df.columns]
     if missing:
-        st.error(f"Filen saknar följande kolumner: {', '.join(missing)}")
+        st.error(f"❌ CSV-filen saknar följande kolumner: {', '.join(missing)}")
         return None
 
+    # Rensa
     df = df.dropna(subset=required_columns)
     df = df[(df['x'] > 0) & (df['y'] > 0) & (df['z'] > 0)]
     df = df[(df['x'] <= 15) & (df['y'] <= 15) & (df['z'] <= 15)]
@@ -62,6 +81,7 @@ def clean_diamond_data(uploaded_file):
     df['depth_calc'] = (df['z'] / ((df['x'] + df['y']) / 2)) * 100
     df['depth_diff'] = abs(df['depth_calc'] - df['depth'])
     df = df[df['depth_diff'] <= 1]
+
     return df
 
 
@@ -69,6 +89,7 @@ df = clean_diamond_data(uploaded_file)
 
 if df is None:
     st.warning("⬅️ Vänligen ladda upp en korrekt CSV-fil för att visa grafer.")
+    st.warning("Filen måste innehålla följande kolumner: index, cut, color, clarity, price, carat, x, y, z, depth")
     st.stop()
 
 
@@ -186,20 +207,27 @@ with tab3:
                                       .value_counts().head(2).index.tolist()
 
     st.markdown("### Grupper med mest Volatilitet i detta datasetet")
-    st.markdown(f"**Topp 2 - volatilitet färger:** {', '.join(top_colors)}")
-    st.markdown(f"**Topp 2 - volatilitet clarity:** {', '.join(top_clarities)}")
+    st.markdown(f"""
+    <p style='font-size: 14px; font-weight: bold; margin-bottom: 4px; line-height: 1.2;'>
+        Topp 2 - volatilitet färger: {', '.join(top_colors)}
+    </p>
+    <p style='font-size: 14px; font-weight: bold; margin-top: 0px; line-height: 1.2;'>
+        Topp 2 - volatilitet clarity: {', '.join(top_clarities)}
+    </p>
+    """, unsafe_allow_html=True)
     st.markdown(
     "<p style='color: #FFD700; font-weight: bold;'>När du väljer kategori, ha i åtanke att Guldfynds målgrupp efterfrågar</p>",
     unsafe_allow_html=True
     )
-    st.markdown(
-    "<p style='color: #FFD700;'>Färger: D och E</p>",
-    unsafe_allow_html=True
-    )
-    st.markdown(
-    "<p style='color: #FFD700;'>Clarity: IF och VVS1</p>",
-    unsafe_allow_html=True
-    )
+    st.markdown("""
+    <p style='color: #FFD700; font-size: 14px; margin-bottom: 4px; line-height: 1.2;'>
+        Färger: D och E
+    </p>
+    <p style='color: #FFD700; font-size: 14px; margin-top: 0px; line-height: 1.2;'>
+        Clarity: IF och VVS1
+    </p>
+    """, unsafe_allow_html=True)
+
 
     available_colors = sorted(nordic_df['color'].dropna().unique())
     available_clarities = sorted(nordic_df['clarity'].dropna().unique())
@@ -232,6 +260,9 @@ with tab3:
         return pd.concat(result, ignore_index=True) if result else pd.DataFrame()
 
     cheap = cheap_diamonds_by_carat(filtered, ['color', 'clarity', 'cut'])
+    if cheap.empty:
+        st.warning("❌ Inga prisvärda diamanter kunde identifieras med vald filtrering.")
+        st.stop()
     cheap = cheap.sort_values(by="un_med_usd", ascending=False)
     top50 = cheap[['index','price','med_price', 'un_med_usd', 'un_med_percent', 'kategori']].head(50)
 
