@@ -95,7 +95,7 @@ def test_calculate_volatility_groups_color():
     }
     df = pd.DataFrame(data)
     top_colors = calculate_volatility_groups(df, 'color')
-    assert isinstance(top_colors, list)
+    assert isinstance(top_colors, pd.Series)
     assert len(top_colors) <= 2
 
 def test_calculate_volatility_groups_clarity():
@@ -107,12 +107,26 @@ def test_calculate_volatility_groups_clarity():
     }
     df = pd.DataFrame(data)
     top_clarities = calculate_volatility_groups(df, 'clarity')
-    assert isinstance(top_clarities, list)
+    assert isinstance(top_clarities, pd.Series)
     assert len(top_clarities) <= 2
-    assert all(isinstance(val, str) for val in top_clarities)
+    assert all(isinstance(val, str) for val in top_clarities.index)
+
+def test_calculate_volatility_groups_cut():
+    data = {
+        'carat': [0.2, 0.3, 0.2, 0.3, 0.4, 0.4],
+        'price': [1000, 1100, 1050, 1150, 1300, 1700],
+        'cut': ['Ideal', 'Ideal', 'Good', 'Good', 'Fair', 'Fair'],
+        'color': ['D'] * 6,
+        'clarity': ['VS1'] * 6
+    }
+    df = pd.DataFrame(data)
+    top_cuts = calculate_volatility_groups(df, 'cut')
+    assert isinstance(top_cuts, pd.Series)
+    assert not top_cuts.empty
+    assert all(isinstance(cut, str) for cut in top_cuts.index)
 
 def test_calculate_volatility_groups_empty():
     df = pd.DataFrame(columns=['carat', 'price', 'color'])
     result = calculate_volatility_groups(df, 'color')
-    assert isinstance(result, list)
-    assert len(result) == 0
+    assert isinstance(result, pd.Series)
+    assert result.empty
