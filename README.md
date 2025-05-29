@@ -2,6 +2,8 @@
 
 Detta projekt är en datadriven analys av diamantpriser och kvaliteter, som en del av en **kunskapskontroll inom dataanalys**. Projektet består av en **Jupyter Notebook-presentation**, en **Streamlit-app**, **automatiserade tester**, och testdata i form av mockfiler.
 
+**Länk till Deployad Streamlit. https://diamantanalys-vthorsen.streamlit.app/**
+
 ---
 
 ## 📁 Projektstruktur
