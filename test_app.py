@@ -82,7 +82,7 @@ def test_cheap_diamonds_by_carat_returns_cheaper_subset():
     assert error is None
     assert df is not None
     result = cheap_diamonds_by_carat(df, ['color', 'clarity', 'cut'])
-    # Bör ha hälften under median
+
     assert len(result) == 6
     assert all(result['price'] < result['med_price'])
 

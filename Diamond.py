@@ -81,7 +81,6 @@ def cheap_diamonds_by_carat(df, group_columns, price_column="price", carat_colum
         cheap["un_med_usd"] = (median_price - cheap[price_column]).round(2)
         cheap["un_med_percent"] = ((median_price - cheap[price_column]) / median_price * 100).round(1)
 
-        # Lägg till gruppegenskaper
         cheap["color"] = group.loc[cheap.index, "color"].values
         cheap["clarity"] = group.loc[cheap.index, "clarity"].values
         cheap["cut"] = group.loc[cheap.index, "cut"].values

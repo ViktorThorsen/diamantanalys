@@ -244,7 +244,6 @@ def run_app(clean_diamond_data):
         st.markdown("### Topp 50 mest prisvärda diamanter")
         st.dataframe(top50.reset_index(drop=True))
 
-        # Visualisering
         st.markdown("### Visualisering av topp 50")
         cmap = plt.colormaps.get_cmap('tab20')
         colors = [cmap(i / 50) for i in range(50)]
@@ -280,7 +279,6 @@ def run_app(clean_diamond_data):
             </div>
         """, unsafe_allow_html=True)
 
-        # Summering
         st.markdown("### Investeringssummering")
         top50_diamonds = top50.copy()
         top50_diamonds['med_price_10pct'] = top50_diamonds['med_price'] * 1.10
