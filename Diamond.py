@@ -64,7 +64,7 @@ def cheap_diamonds_by_carat(df, group_columns, price_column="price", carat_colum
     Returnerar en DataFrame med diamanter vars pris är under medianen för sin grupp.
     """
     df = df[df[carat_column] <= 1.0].copy()
-    df['carat_bin'] = pd.cut(df[carat_column], bins=np.arange(0.1, 1.05, 0.05))
+    df['carat_bin'] = pd.cut(df[carat_column], bins=np.arange(0.1, 1, 0.01))
 
     result = []
     groups = df.groupby(group_columns + ['carat_bin'])
@@ -102,11 +102,11 @@ def calculate_volatility_groups(df, group_column):
     grouped = grouped.dropna()
 
     sorted_grouped = grouped.sort_values(['carat_bin', 'variation'], ascending=[True, False])
-    top2_per_bin = sorted_grouped.groupby(level='carat_bin').head(2)
+    top2_per_bin = sorted_grouped.groupby(level='carat_bin').head(3)
 
     frekvens = top2_per_bin.reset_index()[group_column].value_counts()
 
-    return frekvens.head(2)
+    return frekvens.head(3)
 
 def main():
     from DiamondUI import run_app

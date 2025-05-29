@@ -132,39 +132,6 @@ def run_app(clean_diamond_data):
         """
         components.html(rounded_html, height=600, scrolling=False)
 
-    with tab2:
-        st.subheader("Antal Diamanter")
-
-        fig, ax = plt.subplots(figsize=(10, 5), facecolor="#1e1e1e")
-        ax.set_facecolor("#1e1e1e")
-        ax.hist(df['carat'], bins=30, color='lightskyblue', edgecolor='black')
-        
-        ax.set_xlabel("Carat", color='white')
-        ax.set_ylabel("Antal diamanter", color='white')
-        ax.tick_params(colors='white')
-        ax.grid(True, color='gray', linestyle='--', alpha=0.3)
-        ax.title.set_color('white')
-
-        buf = io.BytesIO()
-        fig.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor())
-        data = base64.b64encode(buf.getbuffer()).decode("utf-8")
-
-        st.markdown(
-            f"""
-            <div style="
-                background-color: #1e1e1e;
-                border-radius: 20px;
-                padding: 15px;
-                overflow: hidden;
-                text-align: center;
-                margin-top: 1rem;
-                margin-bottom: 2rem;">
-                <img src="data:image/png;base64,{data}" style="max-width: 100%; border-radius: 10px;">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
     with tab3:
         nordic_df = df[(df['carat'] >= 0.1) & (df['carat'] <= 1.0)].copy()
         if 'index' not in df.columns:
@@ -172,67 +139,89 @@ def run_app(clean_diamond_data):
 
         if not nordic_df.empty and 'carat' in nordic_df.columns:
             nordic_df = nordic_df.dropna(subset=['carat'])
-            nordic_df['carat_bin'] = pd.cut(nordic_df['carat'], bins=np.arange(0.1, 1.05, 0.05))
+            nordic_df['carat_bin'] = pd.cut(nordic_df['carat'], bins=np.arange(0.1, 1, 0.01))
         else:
             st.warning("Data saknas eller kolumn 'carat' är inte tillgänglig.")
             st.stop()
 
         top_colors = calculate_volatility_groups(nordic_df, "color")
         top_clarities = calculate_volatility_groups(nordic_df, "clarity")
+        top_cuts = calculate_volatility_groups(nordic_df, "cut")
 
         st.markdown("### Grupper med mest Volatilitet i detta datasetet")
         st.markdown(f"""
-        <p style='font-size: 14px; font-weight: bold; margin-bottom: 4px; line-height: 1.2;'>
-            Topp 2 - volatilitet färger: {', '.join(top_colors.index)}
-        </p>
-        <p style='font-size: 14px; font-weight: bold; margin-top: 0px; line-height: 1.2;'>
-            Topp 2 - volatilitet clarity: {', '.join(top_clarities.index)}
-        </p>
-        """, unsafe_allow_html=True)
-        st.markdown(
-        "<p style='color: #FFD700; font-weight: bold;'>När du väljer kategori, ha i åtanke att Guldfynds målgrupp efterfrågar</p>",
-        unsafe_allow_html=True
-        )
-        st.markdown("""
-        <p style='color: #FFD700; font-size: 14px; margin-bottom: 4px; line-height: 1.2;'>
-            Färger: D, E och F
-        </p>
-        <p style='color: #FFD700; font-size: 14px; margin-top: 0px; line-height: 1.2;'>
-            Clarity: IF, VVS1 och VVS2
-        </p>
+        <p style='font-size: 14px; font-weight: bold;'>Topp 3 - volatilitet färger: {', '.join(top_colors.index)}</p>
+        <p style='font-size: 14px; font-weight: bold;'>Topp 3 - volatilitet clarity: {', '.join(top_clarities.index)}</p>
+        <p style='font-size: 14px; font-weight: bold;'>Topp 3 - volatilitet cuts: {', '.join(top_cuts.index)}</p>
         """, unsafe_allow_html=True)
 
+        st.markdown("<p style='color: #FFD700; font-weight: bold;'>När du väljer kategori, ha i åtanke att Guldfynds målgrupp efterfrågar</p>", unsafe_allow_html=True)
+        st.markdown("""
+        <p style='color: #FFD700; font-size: 14px;'>Färger: D, E och F</p>
+        <p style='color: #FFD700; font-size: 14px;'>Clarity: IF, VVS1 och VVS2</p>
+        <p style='color: #FFD700; font-size: 14px;'>Cuts: Ideal, Premium och Very Good</p>
+        """, unsafe_allow_html=True)
 
         available_colors = sorted(nordic_df['color'].dropna().unique())
         available_clarities = sorted(nordic_df['clarity'].dropna().unique())
+        available_cuts = sorted(nordic_df['cut'].dropna().unique())
 
-        selected_colors = st.multiselect("Välj färger att inkludera", available_colors, default=['D', 'E'])
-        selected_clarities = st.multiselect("Välj clarity-nivåer att inkludera", available_clarities, default=['IF', 'VVS1'])
+        selected_colors = st.multiselect("Välj färger att inkludera", available_colors, default=list(top_colors.index))
+        selected_clarities = st.multiselect("Välj clarity att inkludera", available_clarities, default=list(top_clarities.index))
+        selected_cuts = st.multiselect("Välj cuts att inkludera", available_cuts, default=list(top_cuts.index))
 
-        filtered = nordic_df[(nordic_df['color'].isin(selected_colors)) &
-                            (nordic_df['clarity'].isin(selected_clarities))].copy()
-        filtered['carat_bin'] = pd.cut(filtered['carat'], bins=np.arange(0.1, 1.05, 0.05))
+        preferred_set = {'D', 'E', 'F', 'IF', 'VVS1', 'VVS2', 'Ideal', 'Premium', 'Very Good'}
+        all_selected = selected_colors + selected_clarities + selected_cuts
 
+        st.markdown("""
+        <div style=\"display: flex; align-items: center; gap: 15px; margin-bottom: 10px;\">
+            <div style=\"display: flex; align-items: center;\">
+                <span style=\"width: 14px; height: 14px; background-color: #007f00; display: inline-block; border-radius: 50%; margin-right: 6px;\"></span>
+                <span style=\"font-size: 13px; color: white; font-style: italic;\">Existerar i Guldfynds målgrupp</span>
+            </div>
+            <div style=\"display: flex; align-items: center;\">
+                <span style=\"width: 14px; height: 14px; background-color: #cc0000; display: inline-block; border-radius: 50%; margin-right: 6px;\"></span>
+                <span style=\"font-size: 13px; color: white; font-style: italic;\">Ej i målgruppen</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        color_boxes = ""
+        for item in all_selected:
+            bg = "#007f00" if item in preferred_set else "#cc0000"
+            color_boxes += f"<span style='background-color: {bg}; color: white; padding: 5px 12px; border-radius: 6px; margin-right: 5px; font-size: 13px;'>{item}</span>"
+
+        st.markdown(f"<div style='margin-bottom: 10px;'>{color_boxes}</div>", unsafe_allow_html=True)
+
+        filtered = nordic_df[
+            (nordic_df['color'].isin(selected_colors)) &
+            (nordic_df['clarity'].isin(selected_clarities)) &
+            (nordic_df['cut'].isin(selected_cuts))
+        ].copy()
+        filtered['carat_bin'] = pd.cut(filtered['carat'], bins=np.arange(0.1, 1, 0.01))
 
         cheap = cheap_diamonds_by_carat(filtered, ['carat_bin', 'color', 'clarity', 'cut'])
         if cheap.empty:
             st.warning("❌ Inga prisvärda diamanter kunde identifieras med vald filtrering.")
             st.stop()
+
         cheap = cheap.sort_values(by="un_med_usd", ascending=False)
         top50 = cheap[['index','price','med_price', 'un_med_usd', 'un_med_percent',
-               'kategori', 'cut', 'color', 'clarity', 'carat_bin']].head(50)
+            'kategori', 'cut', 'color', 'clarity', 'carat_bin']].head(50)
 
         st.markdown("### Topp 50 mest prisvärda diamanter")
         st.dataframe(top50.reset_index(drop=True))
 
+        # Visualisering
         st.markdown("### Visualisering av topp 50")
         cmap = plt.colormaps.get_cmap('tab20')
         colors = [cmap(i / 50) for i in range(50)]
 
         top50_full = pd.merge(filtered, top50, on='index', how='inner', suffixes=('', '_top'))
-        
+
         median_per_bin = nordic_df.groupby('carat_bin')['price'].median().reset_index()
         median_per_bin['carat'] = median_per_bin['carat_bin'].apply(lambda x: (x.left + x.right) / 2)
+
         fig, ax = plt.subplots(figsize=(10, 6))
         ax.scatter(nordic_df['carat'], nordic_df['price'], alpha=0.3, color='lightgray', label='Alla diamanter')
 
@@ -259,6 +248,7 @@ def run_app(clean_diamond_data):
             </div>
         """, unsafe_allow_html=True)
 
+        # Summering
         st.markdown("### Investeringssummering")
         top50_diamonds = top50.copy()
         top50_diamonds['med_price_10pct'] = top50_diamonds['med_price'] * 1.10
@@ -268,3 +258,4 @@ def run_app(clean_diamond_data):
         st.success(f"Total investering (inköpspris): ${top50_diamonds['price'].sum():,.2f}")
         st.success(f"Möjlig vinst vid medianförsäljning: ${top50_diamonds['vinst_median'].sum():,.2f}")
         st.success(f"Möjlig vinst vid +10% över median: ${top50_diamonds['vinst_10pct'].sum():,.2f}")
+
