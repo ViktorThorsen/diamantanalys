@@ -131,6 +131,38 @@ def run_app(clean_diamond_data):
         </div>
         """
         components.html(rounded_html, height=600, scrolling=False)
+        with tab2:
+            st.subheader("Antal Diamanter")
+
+            fig, ax = plt.subplots(figsize=(10, 5), facecolor="#1e1e1e")
+            ax.set_facecolor("#1e1e1e")
+            ax.hist(df['carat'], bins=30, color='lightskyblue', edgecolor='black')
+            
+            ax.set_xlabel("Carat", color='white')
+            ax.set_ylabel("Antal diamanter", color='white')
+            ax.tick_params(colors='white')
+            ax.grid(True, color='gray', linestyle='--', alpha=0.3)
+            ax.title.set_color('white')
+
+            buf = io.BytesIO()
+            fig.savefig(buf, format="png", bbox_inches="tight", facecolor=fig.get_facecolor())
+            data = base64.b64encode(buf.getbuffer()).decode("utf-8")
+
+            st.markdown(
+                f"""
+                <div style="
+                    background-color: #1e1e1e;
+                    border-radius: 20px;
+                    padding: 15px;
+                    overflow: hidden;
+                    text-align: center;
+                    margin-top: 1rem;
+                    margin-bottom: 2rem;">
+                    <img src="data:image/png;base64,{data}" style="max-width: 100%; border-radius: 10px;">
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
 
     with tab3:
         nordic_df = df[(df['carat'] >= 0.1) & (df['carat'] <= 1.0)].copy()
