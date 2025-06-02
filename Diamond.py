@@ -54,6 +54,17 @@ def clean_diamond_data(uploaded_file):
     df['depth_diff'] = abs(df['depth_calc'] - df['depth'])
     df = df[df['depth_diff'] <= 1]
 
+    allowed_cuts = ["Ideal", "Premium", "Very Good", "Good", "Fair"]
+    allowed_colors = ['D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L',
+                      'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',
+                      'V', 'W', 'X', 'Y', 'Z']
+    allowed_clarities = ['FL', 'IF', 'VVS1', 'VVS2', 'VS1', 'VS2',
+                         'SI1', 'SI2', 'SI3', 'I1', 'I2', 'I3']
+
+    df = df[df['cut'].isin(allowed_cuts)]
+    df = df[df['color'].isin(allowed_colors)]
+    df = df[df['clarity'].isin(allowed_clarities)]
+
     return df, None
 
 def cheap_diamonds_by_carat(df, group_columns, price_column="price", carat_column="carat"):
