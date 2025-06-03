@@ -5,9 +5,9 @@ Syfte:
 Syftet med testerna är att säkerställa att databearbetningen är korrekt och robust mot felaktig eller ofullständig indata. Det garanterar att applikationen fungerar som förväntat även vid framtida kodförändringar.
 
 Funktioner som testas:
-- `clean_diamond_data`: Att korrekt CSV-data returnerar en DataFrame, medan ogiltig eller trasig data ger tydliga felmeddelanden.
+- `clean_diamond_data`: Att korrekt CSV-data returnerar en DataFrame, medan ogiltig data ger tydliga felmeddelanden.
 - `cheap_diamonds_by_carat`: Att diamanter under medianpriset per carat-grupp identifieras korrekt.
-- `calculate_volatility_groups`: Att funktionens logik för att hitta de mest volatila färg- eller klarhetsgrupperna per caratintervall fungerar som avsett, även på tomma dataset.
+- `calculate_volatility_groups`: Att funktionens logik för att hitta de mest volatila färg- eller klarhetsgrupperna per caratintervall fungerar som avsett.
 
 Dessa tester är viktiga för att upptäcka fel tidigt och förhindra att framtida kodändringar introducerar buggar.
 """
