@@ -70,7 +70,7 @@ def clean_diamond_data(uploaded_file):
 def cheap_diamonds_by_carat(df, group_columns, price_column="price", carat_column="carat"):
     """
     Identifierar prisvärda diamanter genom att jämföra varje diamants pris med medianpriset
-    för andra diamanter med samma egenskaper (inkl. carat_bin).
+    för andra diamanter med samma egenskaper (inkl. carat).
 
     Returnerar en DataFrame med diamanter vars pris är under medianen för sin grupp.
     """
